@@ -1,54 +1,107 @@
-# TokuplayIOS
+<div align="center">
 
-Reimplementasi SwiftUI (iOS 17+) berdasarkan analisis statis `tokuplay_v3.2.7.apk`. Bukan hasil konversi APK.
-Kode belum pernah dikompilasi: Windows tidak bisa build iOS, jadi build pertama harus dilakukan di Mac.
+<img src="design/Logo.jpeg" alt="Tokuplay" width="120" />
 
-## Build (Mac, Xcode 15+)
+# Tokuplay untuk iOS
 
-```
+**Aplikasi streaming tokusatsu native untuk iPhone dan iPad, dibangun dengan SwiftUI.**
+
+![iOS](https://img.shields.io/badge/iOS-17%2B-black?logo=apple)
+![Swift](https://img.shields.io/badge/Swift-5.9-F05138?logo=swift&logoColor=white)
+![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-0A84FF)
+![Dependencies](https://img.shields.io/badge/dependensi%20pihak%20ketiga-0-success)
+![Build](https://img.shields.io/badge/build-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
+
+</div>
+
+Port iOS dari aplikasi Android Tokuplay, ditulis ulang dari nol (bukan konversi APK). Tanpa library pihak ketiga:
+pemutar memakai AVPlayer, jaringan memakai URLSession, dan seluruh antarmuka memakai SwiftUI bawaan iOS.
+Hasilnya ringan, dan kodenya kecil (sekitar 20 file Swift).
+
+---
+
+## Fitur
+
+| | |
+|---|---|
+| **Beranda dinamis** | Tab dan seksi (Trending, Rekomendasi, Series, Movie, V-Cinext, dan lainnya) mengikuti konfigurasi dari sumber konten |
+| **Pencarian instan** | Berjalan lokal di semua judul, cocok sebagian kata dan toleran salah ketik ("zetz" menemukan "Zeztz") |
+| **Detail judul** | Poster, sinopsis, rating, durasi, sumber fansub, daftar episode, dan **judul terkait** |
+| **Pemutar** | Pilihan kualitas, subtitle `.srt` / `.vtt` / `.ass` yang digambar sendiri di atas video, header referer otomatis |
+| **Lanjut menonton** | Posisi tersimpan tiap 5 detik. Episode dilanjutkan dari menit terakhir |
+| **Episode berikutnya** | Setelah selesai, hitung mundur 5 detik lalu putar episode berikutnya yang didukung |
+| **Koleksi** | Bookmark dan riwayat tontonan, tersimpan lokal di perangkat |
+| **Pengaturan** | Sumber konten dan kualitas default (Tertinggi / 1080p / 720p / 480p) |
+
+## Jenis sumber video yang didukung
+
+| Jenis | Keterangan | Status |
+|---|---|---|
+| `@mpd:` | Diselesaikan lewat endpoint stream milik Tokuplay menjadi link MP4 | Didukung |
+| `@storage:` | Penyimpanan Tokuplay, banyak resolusi dan subtitle | Didukung |
+| `@mp4:` | File MP4 berdasarkan path | Didukung |
+| Buzzheavier | Mengikuti alur tombol Download di halamannya | Didukung (`.mp4`, `.m4v`, `.mov`) |
+| Link langsung | `.m3u8`, `.mp4`, `.m4v`, `.mov` | Didukung |
+| `#mpd:` dan manifest DASH | AVPlayer tidak bisa memutar DASH | Tidak didukung |
+
+Episode yang tidak didukung ditandai **Belum didukung di iOS** beserta alasannya, tidak dibiarkan gagal diam-diam.
+
+## Memulai
+
+### Opsi 1: build lewat GitHub Actions (tanpa Mac)
+
+1. Unggah repo ini ke GitHub.
+2. Buka tab **Actions**, pilih **Build iOS (unsigned IPA)**, lalu **Run workflow**.
+3. Setelah selesai, unduh artifact **TokuplayIOS-unsigned-ipa**.
+4. Pasang `.ipa` ke iPhone dengan [Sideloadly](https://sideloadly.io) atau [AltStore](https://altstore.io) memakai Apple ID Anda.
+   Dengan Apple ID gratis, sertifikat berlaku **7 hari** lalu perlu dipasang ulang.
+
+Kalau build gagal, unduh artifact **xcodebuild-log** dan cari baris yang mengandung `error:`.
+
+### Opsi 2: build di Mac
+
+Perlu macOS, Xcode 16+, dan [XcodeGen](https://github.com/yonaskolb/XcodeGen).
+
+```bash
 brew install xcodegen
-xcodegen generate        # membaca project.yml -> TokuplayIOS.xcodeproj
+xcodegen generate            # membaca project.yml dan membuat TokuplayIOS.xcodeproj
 open TokuplayIOS.xcodeproj
 ```
 
-1. Ganti `PRODUCT_BUNDLE_IDENTIFIER` di `project.yml` dan pilih signing team.
-2. Tambahkan gambar ikon 1024x1024 ke `Resources/Assets.xcassets/AppIcon.appiconset`.
-3. Jalankan, lalu isi alamat blog sumber konten di tab Pengaturan
-   (atau isi `TokuplayBaseURL` di `Info.plist`).
+Ganti `PRODUCT_BUNDLE_IDENTIFIER` di `project.yml` dengan ID Anda sendiri, lalu pilih signing team di Xcode.
 
-## Yang sudah ada
+### Mengatur sumber konten
 
-- Home (grid poster, pull to refresh), Cari (debounce, `?q=`), Koleksi (bookmark), Detail, Pengaturan.
-- `ApiService`: decoder feed Blogger (`$t`, `openSearch$totalResults`, `media$thumbnail`, label, tanggal), paging 150 item.
-- `StreamRepository`: port logika ekstraksi APK (fallback video, urutan kualitas, regex subtitle).
-- `PlayerView`: AVPlayer dengan header referer dan pilihan kualitas.
-- Bookmark dan riwayat disimpan lokal (pengganti Room di APK).
+Sumber konten adalah blog Blogger dengan feed `/feeds/posts/default?alt=json`. Alamatnya bisa diisi dua cara:
 
-## Temuan dari APK (rantai konfigurasi)
+- Di aplikasi: tab **Pengaturan → Sumber konten**.
+- Atau sebagai nilai bawaan: kunci `TokuplayBaseURL` di `TokuplayIOS/Resources/Info.plist`.
 
-1. String `app_key` di APK dienkripsi `Opener` (lihat `tools/decrypt_plugin.js`, password = nama paket; folder `tools/` ada di `.gitignore`).
-2. Hasil dekripsi = blog konfigurasi. Halaman `feeds/pages/default/<id>?alt=json` berisi JSON terenkripsi (indeks).
-3. Indeks menunjuk blog kedua; halaman `/p/db.html` (`.post-body`) berisi JSON konfigurasi:
-   kategori beranda, label, daftar channel TV, dan URL plugin terenkripsi.
-4. Ekstraksi stream asli dijalankan oleh plugin yang diunduh saat runtime dan dijaga cek tanda tangan APK.
+## Struktur proyek
 
-## Plugin Tokuplay (hasil analisis plugin runtime)
+```
+TokuplayIOS/
+├─ App/          Titik masuk aplikasi, tab, kartu poster, pengaturan
+├─ Data/         Klien feed Blogger, konfigurasi beranda, repository, penyimpanan lokal,
+│                dekripsi string, dan plugin sumber video
+├─ Domain/       Model data (Content, Episode, Server, Source, Video, Subtitle)
+└─ Features/     Home, Detail, Player (+ subtitle), Search, Settings
+design/          Logo sumber
+project.yml      Definisi proyek untuk XcodeGen
+.github/         Workflow build GitHub Actions
+```
 
-`Data/TokuplayPlugins.swift` memuat dua loader milik Tokuplay sendiri:
+Alur singkat: **Feed Blogger → `ApiService` → `ContentRepository` → layar**. Saat episode diputar,
+`StreamRepository` memilih plugin yang sesuai dengan jenis sumber, lalu `PlayerView` memutar hasilnya.
 
-- `StoragePlugin` (`@storage:<id>[|res,res][?lang,lang]`) -> `blob.tokuplay.xyz/f/<token>/<file>[.<res>.mp4]`.
-  Token = AES-256-CBC(path, key = SHA-256("context"), IV nol), base64 URL-safe tanpa padding.
-- `DashPlugin` (`mpd:<id>` atau `mpd:<id>@...`) -> `dash.tokuplay.xyz/video|stream/...`.
-  AVPlayer tidak bisa memutar DASH (`.mpd`), jadi hanya bentuk `@` yang bisa diputar.
+## Keterbatasan
 
-Loader pihak ketiga di plugin sengaja tidak diport.
+- Subtitle ASS/SSA hanya menampilkan teks, tanpa gaya (warna, posisi, animasi).
+- Format yang tidak didukung AVPlayer (misalnya `.mkv` atau manifest DASH) tidak bisa diputar.
+- Belum ada: push notification, Picture in Picture, Chromecast, dan cek pembaruan.
+- Tab Channel TV (siaran live) dari aplikasi Android tidak dibawa.
 
-## Batasan yang masih ada
+## Catatan
 
-- **Alamat blog konten tidak diisi.** Ia ada di konfigurasi/plugin runtime yang tidak dibuka di port ini.
-  Aplikasi bekerja dengan blog Blogger mana pun yang Anda tentukan sendiri.
-- **Plugin host video tidak ada.** Hanya link langsung (`.m3u8`, `.mp4`, dst.) yang diputar. Parsing episode dari
-  isi post bersifat perkiraan (`ApiService.parseEpisodes`) dan perlu disesuaikan dengan format blog Anda.
-- Subtitle eksternal (`.srt/.vtt/.ass`) digambar sendiri di atas video (`Features/Player/Subtitles.swift`),
-  karena AVPlayer tidak memuat file subtitle terpisah. Format ASS hanya teksnya, tanpa gaya.
-- Belum ada: push notification (Firebase), analytics, cek update, layar laporan, PiP, Chromecast.
+Proyek ini dibuat untuk penggunaan pribadi. Aplikasi hanya menampilkan dan memutar konten dari sumber yang Anda tentukan sendiri,
+dan tidak menyertakan konten apa pun di dalamnya. Anda bertanggung jawab memastikan Anda berhak mengakses sumber tersebut.
