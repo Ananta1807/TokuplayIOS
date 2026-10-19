@@ -35,6 +35,9 @@ final class PlayerModel: ObservableObject {
 
     init(preferredQuality: Int) {
         self.preferredQuality = preferredQuality
+        Self.activateAudioSession()
+        player.isMuted = false
+        player.volume = 1
         timeObserver = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.25, preferredTimescale: 600),
                                                       queue: .main) { [weak self] time in
             MainActor.assumeIsolated { self?.tick(time.seconds) }
@@ -54,9 +57,22 @@ final class PlayerModel: ObservableObject {
         if let endObserver { NotificationCenter.default.removeObserver(endObserver) }
     }
 
+    /// Without a playback category iOS uses "ambient", which the silent switch mutes. A video player must use
+    /// .playback so sound plays with the ringer off and keeps going in Picture in Picture / background audio.
+    private static func activateAudioSession() {
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(.playback, mode: .moviePlayback)
+            try session.setActive(true)
+        } catch {
+            print("AVAudioSession setup failed: \(error)")
+        }
+    }
+
     /// Loads a (new) episode into the same player.
     func load(_ request: PlayerRequest) {
         self.request = request
+        Self.activateAudioSession()
         ended = false
         lastReported = -10
         pendingStart = request.startAt
