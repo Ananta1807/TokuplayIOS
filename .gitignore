@@ -1,0 +1,8 @@
+# Alat analisis lokal, jangan diunggah
+tools/
+
+# Hasil build
+build/
+*.xcodeproj
+xcuserdata/
+.DS_Store
