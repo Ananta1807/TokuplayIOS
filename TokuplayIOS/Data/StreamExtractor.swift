@@ -24,6 +24,7 @@ public class StreamRepository: ObservableObject {
         register(plugin: StoragePlugin())
         register(plugin: DashPlugin())
         register(plugin: Mp4PathPlugin())
+        register(plugin: BuzzheavierPlugin())
         register(plugin: DirectStreamPlugin())
     }
 

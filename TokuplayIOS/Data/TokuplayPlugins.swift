@@ -21,7 +21,7 @@ enum StreamSupport {
     /// Real data uses `@storage:...` and `@mpd:<id>`; the plugin matches loaders by substring, so match the same way.
     /// `mpd:<id>` without `@` resolves to a DASH manifest, which AVPlayer cannot play.
     static func isPlayable(_ id: String) -> Bool {
-        id.contains("@storage") || id.contains("@mp4") || (id.contains("mpd:") && id.contains("@")) || isDirectMedia(id)
+        id.contains("@storage") || id.contains("@mp4") || id.contains("buzzheavier.com") || (id.contains("mpd:") && id.contains("@")) || isDirectMedia(id)
     }
 
     /// Host name of a source that only exists on a third-party site (e.g. a file-host page), if any.
