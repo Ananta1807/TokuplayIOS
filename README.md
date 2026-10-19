@@ -129,8 +129,3 @@ Proyek ini berdiri di atas karya banyak orang. Terima kasih kepada:
   Seluruh kode Swift di repo ini ditulis ulang dan tidak menyalin kode dari APK.
 
 Dikembangkan dengan bantuan [Claude Code](https://claude.com/claude-code).
-
-## Catatan
-
-Proyek ini dibuat untuk penggunaan pribadi. Aplikasi hanya menampilkan dan memutar konten dari sumber yang Anda tentukan sendiri,
-dan tidak menyertakan konten apa pun di dalamnya. Anda bertanggung jawab memastikan Anda berhak mengakses sumber tersebut.
