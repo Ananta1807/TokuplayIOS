@@ -107,7 +107,7 @@ Proyek ini berdiri di atas karya banyak orang. Terima kasih kepada:
 
 **Alat analisis**
 
-- **REA (Reverse Engineer Anything)**: perangkat reverse engineering yang dipakai untuk membaca struktur
+- **[REA (Reverse Engineer Anything)](https://github.com/morluto/rea)**: perangkat reverse engineering yang dipakai untuk membaca struktur
   aplikasi Android asli (kelas, alur data, dan format sumber video) secara statis.
 - **[JADX](https://github.com/skylot/jadx)** (Apache-2.0): dekompiler DEX ke Java yang menjadi mesin di balik analisis APK.
 - **[Androguard](https://github.com/androguard/androguard)** (Apache-2.0): membaca resource dan string pada APK dan DEX.
