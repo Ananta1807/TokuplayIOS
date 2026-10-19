@@ -22,6 +22,19 @@ struct SettingsView: View {
                     Text("Alamat blog yang menyediakan feed /feeds/posts/default?alt=json.")
                 }
 
+                Section {
+                    Picker("Kualitas default", selection: $settings.preferredQuality) {
+                        Text("Tertinggi").tag(0)
+                        Text("1080p").tag(1080)
+                        Text("720p").tag(720)
+                        Text("480p").tag(480)
+                    }
+                } header: {
+                    Text("Pemutar")
+                } footer: {
+                    Text("Dipakai bila episode punya beberapa kualitas. Bisa diganti saat memutar.")
+                }
+
                 Section("Data lokal") {
                     Text("\(store.bookmarks.count) bookmark, \(store.history.count) riwayat")
                     Button("Hapus bookmark & riwayat", role: .destructive) { confirmClear = true }

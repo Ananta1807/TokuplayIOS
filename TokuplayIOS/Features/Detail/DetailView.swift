@@ -54,7 +54,11 @@ struct DetailView: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(episode.title).foregroundStyle(reason == nil ? .primary : .secondary)
-                                if reason != nil { Text("Belum didukung di iOS").font(.caption2).foregroundStyle(.orange) }
+                                if reason != nil {
+                                    Text("Belum didukung di iOS").font(.caption2).foregroundStyle(.orange)
+                                } else if let resume = Self.resumeLabel(store.resumePosition(for: content, episode: episode)) {
+                                    Text("Lanjut \(resume)").font(.caption2).foregroundStyle(.secondary)
+                                }
                             }
                             Spacer()
                             if loadingEpisode == episode.id {
@@ -75,25 +79,28 @@ struct DetailView: View {
                 Image(systemName: store.isBookmarked(content) ? "bookmark.fill" : "bookmark")
             }
         }
-        .fullScreenCover(item: $playing) { PlayerView(request: $0) }
+        .fullScreenCover(item: $playing) { PlayerHost(content: content, request: $0) }
         .alert("Tidak bisa diputar", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
             Button("OK", role: .cancel) {}
         } message: { Text(errorMessage ?? "") }
     }
 
-    /// Tries each server of the episode in order and plays the first one that yields a video.
     private func play(_ episode: Episode) async {
         loadingEpisode = episode.id
         defer { loadingEpisode = nil }
-        for server in episode.servers {
-            let result = await streams.extract(sources: server.sources, serverName: server.name, serverId: server.id,
-                                               serverReferer: server.referer, subtitleURLs: server.subtitles)
-            if !result.videos.isEmpty {
-                store.record(content: content, episode: episode)
-                playing = PlayerRequest(title: "\(content.title) – \(episode.title)", stream: result)
-                return
-            }
+        let service = PlaybackService(store: store, streams: streams)
+        if let request = await service.request(content: content, episode: episode) {
+            playing = request
+        } else {
+            errorMessage = "Sumber video tidak bisa dimuat. Periksa koneksi, lalu coba lagi."
         }
-        errorMessage = "Sumber video tidak bisa dimuat. Periksa koneksi, lalu coba lagi."
+    }
+
+    /// "12:34" or "1:02:03"; nil when there is nothing to resume.
+    private static func resumeLabel(_ seconds: Double) -> String? {
+        guard seconds > 0 else { return nil }
+        let t = Int(seconds)
+        let (h, m, s) = (t / 3600, t % 3600 / 60, t % 60)
+        return h > 0 ? String(format: "%d:%02d:%02d", h, m, s) : String(format: "%d:%02d", m, s)
     }
 }

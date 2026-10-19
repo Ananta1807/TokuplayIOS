@@ -8,6 +8,7 @@ struct HistoryEntry: Codable, Hashable, Identifiable {
     var episodeTitle: String
     var positionSeconds: Double
     var updated: Date
+    var duration: Double? = nil
 }
 
 @MainActor
@@ -45,6 +46,23 @@ final class LocalStore: ObservableObject {
     }
 
     func entry(for c: Content) -> HistoryEntry? { history.first { $0.contentID == c.id } }
+
+    /// Where to resume `episode`: the saved position if it is the episode last watched, else 0.
+    func resumePosition(for c: Content, episode: Episode) -> Double {
+        guard let e = entry(for: c), e.episodeID == episode.id, e.positionSeconds > 10 else { return 0 }
+        return e.positionSeconds
+    }
+
+    /// Called every few seconds while playing. Past 95% the episode counts as finished and restarts from 0.
+    func savePosition(content: Content, episode: Episode, position: Double, duration: Double) {
+        guard position.isFinite, let i = history.firstIndex(where: { $0.contentID == content.id }),
+              history[i].episodeID == episode.id else { return }
+        let finished = duration > 0 && position / duration > 0.95
+        history[i].positionSeconds = finished ? 0 : position
+        if duration > 0 { history[i].duration = duration }
+        history[i].updated = Date()
+        save(history, historyKey)
+    }
 
     func clearAll() {
         bookmarks = []

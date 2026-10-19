@@ -168,7 +168,7 @@ struct ApiService {
             Server(id: s.id ?? "0",
                    name: "Server \(s.id ?? "0")",
                    sources: (s.sources ?? []).compactMap { src in
-                       src.key.flatMap { Opener.decrypt($0) }.map { Source(id: $0) }
+                       src.key.flatMap { Opener.decrypt($0) }.map { Source(id: $0, quality: src.quality) }
                    },
                    subtitles: (s.subs ?? "").split(separator: ",").compactMap { Opener.decrypt(String($0)) },
                    referer: "")

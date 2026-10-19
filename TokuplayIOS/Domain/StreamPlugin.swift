@@ -15,6 +15,10 @@ public struct VideoTrack: Identifiable, Codable, Hashable {
 
     public var resolvedURL: URL? { URL(string: url) }
 
+    public func withQuality(_ q: String) -> VideoTrack {
+        VideoTrack(id: id, url: url, quality: q, mimeType: mimeType, size: size, extension_: extension_, headers: headers)
+    }
+
     public init(
         id: String = UUID().uuidString,
         url: String,
@@ -147,11 +151,14 @@ public struct Source: Identifiable, Codable, Hashable {
     public let id: String     // field a — source URL or identifier
     public let name: String   // field b — source name / loader key
     public let referer: String // field c — referer header value
+    /// Quality label from the content blog ("480p", "720p", ...). Optional so old saved data still decodes.
+    public var quality: String?
 
-    public init(id: String, name: String = "", referer: String = "") {
+    public init(id: String, name: String = "", referer: String = "", quality: String? = nil) {
         self.id = id
         self.name = name
         self.referer = referer
+        self.quality = quality
     }
 }
 

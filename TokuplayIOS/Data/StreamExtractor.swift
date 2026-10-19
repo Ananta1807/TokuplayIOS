@@ -82,7 +82,11 @@ public class StreamRepository: ObservableObject {
                             serverId: serverId,
                             session: session
                         )
-                        collectedVideos.append(contentsOf: result.videos)
+                        // The blog knows the quality of each source; loaders usually do not.
+                        let label = source.quality ?? ""
+                        collectedVideos.append(contentsOf: result.videos.map {
+                            $0.quality.isEmpty && !label.isEmpty ? $0.withQuality(label) : $0
+                        })
                         collectedAudios.append(contentsOf: result.audios)
                         collectedSubtitles.append(contentsOf: result.subtitles)
                         handledByPlugin = true
@@ -118,7 +122,7 @@ public class StreamRepository: ObservableObject {
 
                 let fallbackVideo = VideoTrack(
                     url: rawURL,
-                    quality: ext,
+                    quality: (source.quality ?? "").isEmpty ? ext : source.quality!,
                     headers: headers
                 )
                 collectedVideos.append(fallbackVideo)

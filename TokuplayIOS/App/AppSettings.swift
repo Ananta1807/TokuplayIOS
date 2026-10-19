@@ -9,7 +9,13 @@ final class AppSettings: ObservableObject {
         didSet { UserDefaults.standard.set(baseURLString, forKey: Self.key) }
     }
 
+    /// 0 = highest available, otherwise the highest quality that does not exceed this height (1080, 720, 480).
+    @Published var preferredQuality: Int {
+        didSet { UserDefaults.standard.set(preferredQuality, forKey: "preferredQuality") }
+    }
+
     init() {
+        preferredQuality = UserDefaults.standard.integer(forKey: "preferredQuality")
         let preset = Bundle.main.object(forInfoDictionaryKey: "TokuplayBaseURL") as? String ?? ""
         baseURLString = UserDefaults.standard.string(forKey: Self.key) ?? preset
     }
