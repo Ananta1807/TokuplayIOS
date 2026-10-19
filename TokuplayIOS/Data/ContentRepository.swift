@@ -32,6 +32,30 @@ final class ContentRepository: ObservableObject {
         }
     }
 
+    /// Titles related to `c`: the hand-picked list from the blog if there is one, otherwise the closest by labels.
+    /// Franchise labels ("@Zeztz") weigh most, then shared categories ("Kamen Rider"); generic tags are ignored.
+    func related(to c: Content, limit: Int = 12) -> [Content] {
+        let current = byID[c.id] ?? c
+        if let ids = current.relatedIDs {
+            return ids.compactMap { byPostID[$0] }.filter { $0.id != current.id }
+        }
+        func franchises(_ x: Content) -> Set<String> { Set(x.labels.filter { $0.hasPrefix("@") }) }
+        func categories(_ x: Content) -> Set<String> {
+            Set(x.labels.filter { !$0.hasPrefix("@") && !$0.hasPrefix("#") && !$0.hasPrefix("TAG ") && $0 != "Ongoing" })
+        }
+        let (f, k) = (franchises(current), categories(current))
+        let scored: [(Content, Int)] = all.compactMap { other in
+            guard other.id != current.id else { return nil }
+            let score = franchises(other).intersection(f).count * 10 + categories(other).intersection(k).count
+            return score > 0 ? (other, score) : nil
+        }
+        // Stable sort: equal scores keep the blog's newest-first order.
+        let ranked = scored.enumerated().sorted { a, b in
+            a.element.1 != b.element.1 ? a.element.1 > b.element.1 : a.offset < b.offset
+        }
+        return ranked.prefix(limit).map { $0.element.0 }
+    }
+
     /// Tabs worth showing: groups that are enabled and that this port can render (live TV channels are skipped).
     var tabs: [HomeTab] {
         (config?.tabs ?? []).filter { tab in tab.groups.contains { isRenderable($0) } }

@@ -12,6 +12,8 @@ struct Content: Identifiable, Codable, Hashable {
     var rating: String? = nil
     var info: String? = nil
     var fansub: String? = nil
+    /// Post ids chosen by hand on the blog ("relatedList"); nil when the post uses automatic matching.
+    var relatedIDs: [String]? = nil
 
     /// Numeric Blogger post id (what the site config uses in `picks` and `.popular`).
     var postID: String { id.components(separatedBy: "post-").last ?? id }

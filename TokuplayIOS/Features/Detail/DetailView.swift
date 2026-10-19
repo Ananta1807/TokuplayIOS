@@ -22,6 +22,7 @@ struct DetailView: View {
     let content: Content
     @EnvironmentObject private var store: LocalStore
     @EnvironmentObject private var streams: StreamRepository
+    @EnvironmentObject private var repo: ContentRepository
     @State private var playing: PlayerRequest?
     @State private var loadingEpisode: String?
     @State private var errorMessage: String?
@@ -69,6 +70,20 @@ struct DetailView: View {
                         }
                     }
                     .disabled(loadingEpisode != nil)
+                }
+            }
+            let related = repo.related(to: content)
+            if !related.isEmpty {
+                Section("Terkait") {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        LazyHStack(alignment: .top, spacing: 12) {
+                            ForEach(related) { item in
+                                NavigationLink(value: item) { ContentCard(item: item).frame(width: 110) }.buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                 }
             }
         }

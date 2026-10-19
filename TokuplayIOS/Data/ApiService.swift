@@ -51,6 +51,7 @@ struct PostBody: Decodable {
     let info: String?
     let rating: String?
     let infoList: InfoList?
+    let relatedList: [String]?
     let episodeList: [Ep]?
     /// Movies have no episodeList; their servers sit at the top level.
     let servers: [Server]?
@@ -159,7 +160,8 @@ struct ApiService {
             episodes: episodes,
             rating: post.rating,
             info: post.info,
-            fansub: post.infoList?.fansub
+            fansub: post.infoList?.fansub,
+            relatedIDs: post.relatedList
         )
     }
 
