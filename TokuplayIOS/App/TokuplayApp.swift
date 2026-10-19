@@ -51,15 +51,28 @@ struct ContentCard: View {
     let item: Content
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            AsyncImage(url: item.imageURL) { phase in
-                switch phase {
-                case .success(let image): image.resizable().scaledToFill()
-                default: Color.secondary.opacity(0.2).overlay(Image(systemName: "film").foregroundStyle(.secondary))
+            // The placeholder fixes the 2:3 box; the image only fills it and is clipped to it.
+            // (Sizing AsyncImage directly lets scaledToFill overflow into neighbouring cards.)
+            Color.secondary.opacity(0.15)
+                .aspectRatio(2.0 / 3.0, contentMode: .fit)
+                .overlay {
+                    AsyncImage(url: item.imageURL) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image.resizable().scaledToFill()
+                        case .failure:
+                            Image(systemName: "photo").foregroundStyle(.secondary)
+                        default:
+                            ProgressView()
+                        }
+                    }
                 }
-            }
-            .aspectRatio(2.0 / 3.0, contentMode: .fit)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            Text(item.title).font(.caption).lineLimit(2).multilineTextAlignment(.leading)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            Text(item.title)
+                .font(.caption)
+                .lineLimit(2, reservesSpace: true)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }
