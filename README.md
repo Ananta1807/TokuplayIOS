@@ -101,6 +101,35 @@ Alur singkat: **Feed Blogger → `ApiService` → `ContentRepository` → layar*
 - Belum ada: push notification, Picture in Picture, Chromecast, dan cek pembaruan.
 - Tab Channel TV (siaran live) dari aplikasi Android tidak dibawa.
 
+## Kredit dan open source
+
+Proyek ini berdiri di atas karya banyak orang. Terima kasih kepada:
+
+**Alat analisis**
+
+- **REA (Reverse Engineer Anything)**: perangkat reverse engineering yang dipakai untuk membaca struktur
+  aplikasi Android asli (kelas, alur data, dan format sumber video) secara statis.
+- **[JADX](https://github.com/skylot/jadx)** (Apache-2.0): dekompiler DEX ke Java yang menjadi mesin di balik analisis APK.
+- **[Androguard](https://github.com/androguard/androguard)** (Apache-2.0): membaca resource dan string pada APK dan DEX.
+
+**Alat build dan pemasangan**
+
+- **[XcodeGen](https://github.com/yonaskolb/XcodeGen)** (MIT): membuat proyek Xcode dari `project.yml`.
+- **[GitHub Actions](https://github.com/features/actions)**: build `.ipa` tanpa Mac.
+- **[Sideloadly](https://sideloadly.io)** dan **[AltStore](https://altstore.io)**: memasang aplikasi ke iPhone dengan Apple ID.
+
+**Teknologi yang dipakai**
+
+- SwiftUI, AVFoundation / AVKit, CryptoKit, dan CommonCrypto dari Apple.
+- [Blogger](https://www.blogger.com) sebagai penyedia feed JSON untuk konten.
+
+**Aplikasi asli**
+
+- Tokuplay untuk Android adalah sumber desain, struktur data, dan alur kerja yang diikuti port ini.
+  Seluruh kode Swift di repo ini ditulis ulang dan tidak menyalin kode dari APK.
+
+Dikembangkan dengan bantuan [Claude Code](https://claude.com/claude-code).
+
 ## Catatan
 
 Proyek ini dibuat untuk penggunaan pribadi. Aplikasi hanya menampilkan dan memutar konten dari sumber yang Anda tentukan sendiri,
